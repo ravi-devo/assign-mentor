@@ -1,14 +1,30 @@
 const Students = require("../models/students.model");
+const Mentors = require("../models/mentors.model");
 
 const addStudentData = async (req, res) => {
     try {
-        const newStudents = Students(req.body);
+        const { studentName, phoneNumber, batch, course, mentor, previousMentor } = req.body;
 
-        await newStudents.save();
-        res.status(201).send({ message: "New student added" })
+        let existingMentor = await Mentors.findOne({ mentorName: mentor });
 
+        console.log("Existing mentor: ", existingMentor);
+
+        if (!existingMentor) {
+            existingMentor = await Mentors.create({
+                mentorName: mentor,
+                students: []
+            });
+        }
+
+        //creating a student record
+        const newStudent = await Students.create(req.body);
+
+        existingMentor.students.push(newStudent._id);
+        await existingMentor.save();
+
+        res.status(201).json({ message: "Student created successfully.", data: newStudent })
     } catch (error) {
-        res.status(500).send({ message: "Internal server error.", error })
+        res.status(500).json({ message: "Internal server error.", error: error });
     }
 }
 
@@ -20,25 +36,60 @@ const getAllStudents = async (req, res) => {
     });
 }
 
-const updateStudent = async (req, res) => {
-    const studentId = req.params.id;
+const getStudent = async (req, res) => {
+    const id = req.params.id;
+    let student;
 
     try {
-        const existingStudent = await Students.findOne({ studentId: studentId });
+        student = await Students.findOne({ _id: id });
+    } catch (error) {
+        return res.status(404).json({ message: "Student does not exist." });
+    }
 
+    res.json({ message: "Student fetched successfully.", data: student })
+
+}
+
+const updateStudent = async (req, res) => {
+    const id = req.params.id;
+
+    try {
+        const existingStudent = await Students.findOne({ _id: id });
+        console.log("existing Student", existingStudent)
         if (!existingStudent) {
             return res.status(404).send({ message: "This student does not exist, please input the correct student ID." });
         }
 
-        const id = existingStudent._id;
-
-        //Checking and assigning previous mentor
+        //Checking if the mentor is changed.
         let updateFields;
         if (req.body.mentor !== existingStudent.mentor) {
+            //Mentor changed, so assigning previous mentor
             const { studentName, phoneNumber, mentor, batch, course } = req.body;
             updateFields = {
                 studentName, phoneNumber, mentor, previousMentor: existingStudent.mentor, batch, course
             }
+
+            //Mentor is changed, so no longer this student should be in the Mentor's students list.
+            const existingMentor = await Mentors.findOne({ mentorName: existingStudent.mentor });
+
+            //Removing the student from the old mentor students array.
+            const result = await Mentors.findByIdAndUpdate(
+                existingMentor._id,
+                { $pull: { students: id } },
+                { new: true }
+            );
+
+            //This student needs to be added in the new mentor's students array(As reference).
+            let newMentor = await Mentors.findOne({mentorName: mentor});
+            if (!newMentor) {
+                newMentor = await Mentors.create({
+                    mentorName: mentor,
+                    students: []
+                });
+            }
+            newMentor.students.push(id);
+            await newMentor.save();
+
         } else {
             updateFields = req.body;
         }
@@ -48,7 +99,7 @@ const updateStudent = async (req, res) => {
             const updatedStudent = await Students.findByIdAndUpdate(id, { $set: updateFields }, { new: true, useFindAndModify: false }).exec();
             // Checking if the update was successful
             if (!updatedStudent) {
-                return res.status(404).send({ message: "Student not found or not updated." });
+                return res.status(404).send({ message: "Student not updated." });
             }
 
             res.status(200).send({ message: "The student record is updated.", updatedStudent });
@@ -79,4 +130,4 @@ const getPreviousMentor = async (req, res) => {
     res.json({ message: "Previous mentor fetched successfully.", data: { currentMentor: student.mentor, previousMentor: student.previousMentor } });
 }
 
-module.exports = { addStudentData, getAllStudents, updateStudent, getPreviousMentor };
+module.exports = { addStudentData, getAllStudents, updateStudent, getPreviousMentor, getStudent };

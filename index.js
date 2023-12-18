@@ -7,7 +7,7 @@ app.use(express.json());
 
 db();
 
-app.use(studentRoutes);
+app.use('/api/students', studentRoutes);
 
 app.listen(5000, () => {
     console.log("App is running...")
