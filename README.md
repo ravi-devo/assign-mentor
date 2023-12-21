@@ -31,4 +31,5 @@ Here we can see what endpoints does what:
 ## /api/mentors/:mentorId --> GET Request
     To get specific mentor using mentor id.
 
+# Please use https://assign-mentor-wpv9.onrender.com as a prefix to all endpoints.
 
