@@ -12,6 +12,7 @@ router.get('/', getAllMentor);
 //Selecting one mentor and assigning multiple students
 router.put('/:mentorId', updateMentor);
 
+//To get details of specific mentor
 router.get('/:mentorId', getSpecificMentor)
 
 module.exports = router;
