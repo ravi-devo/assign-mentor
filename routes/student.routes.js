@@ -1,16 +1,14 @@
 const express = require("express");
 
-const { addStudentData, getAllStudents, updateStudent, getPreviousMentor, getStudent } = require("../controllers/students.controller");
+const { addStudentData, studentsWithNoMentor, updateStudent, getPreviousMentor, getStudent, getAllStudents } = require("../controllers/students.controller");
 
 const router = express.Router();
-
-const Students = require("../models/students.model");
 
 //To add a new student data
 router.post("/", addStudentData);
 
-//To get all students
-router.get("/", getAllStudents);
+//To get students with no mentor
+router.get("/noMentor", studentsWithNoMentor);
 
 //To get specific student based on id
 router.get("/:id", getStudent);
@@ -19,6 +17,9 @@ router.get("/:id", getStudent);
 router.put("/:id", updateStudent);
 
 //To get previous mentor
-router.get("/previousMentor/:studentId", getPreviousMentor)
+router.get("/previousMentor/:studentId", getPreviousMentor);
+
+// To get students with no mentor
+router.get("/", getAllStudents);
 
 module.exports = router;

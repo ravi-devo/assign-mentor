@@ -3,11 +3,13 @@ const mongoose = require("mongoose");
 const mentorSchema = mongoose.Schema({
     mentorName: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
-    students: [
-        { type: mongoose.Schema.Types.ObjectId, ref: 'Students' }
-    ],
+    students: {
+        type: [mongoose.Schema.Types.ObjectId],
+        default: [],
+    }
 });
 
 module.exports = mongoose.model('Mentors', mentorSchema);
