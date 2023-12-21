@@ -1,6 +1,7 @@
 This project demonstrates the development of backend using Node.js with express.
 
 We have 2 collections students and mentors, we have endpoints for CRUD operations.
+There is a reference from students collection to mentors collection, when a student record is added with mentor, the specific mentor record will be created automatically if it's not created already and the students will be automatically added to Mentors.students array in database.
 
 Here we can see what endpoints does what:
 
@@ -32,4 +33,3 @@ Here we can see what endpoints does what:
     To get specific mentor using mentor id.
 
 # Please use https://assign-mentor-wpv9.onrender.com as a prefix to all endpoints.
-
